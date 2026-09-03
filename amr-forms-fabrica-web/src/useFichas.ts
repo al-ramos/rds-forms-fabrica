@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { API, type Ficha } from "./types";
+import { API, type Ficha, type FichaAPI } from "./types";
+import { mensagemDeErro } from "./erros";
 
-function mapFicha(f: any): Ficha {
+function mapFicha(f: FichaAPI): Ficha {
     const noTipoOp =
         { 1: "Carga", 2: "Descarga", 3: "Transferência" }[f.codigoTipoOperacao as 1 | 2 | 3]
         ?? `Op. ${f.codigoTipoOperacao}`;
@@ -18,7 +19,7 @@ function mapFicha(f: any): Ficha {
     return {
         cdFicha: f.codigo,
         noFilial: f.noFilial ?? `Filial ${f.codigoFilial}`,
-        dtFicha: f.dataFicha,
+        dtFicha: f.dataFicha ?? "",
         noTipoOp,
         noPasso,
         placa: f.placaVeiculo ?? "—",
@@ -37,15 +38,15 @@ export function useFichas() {
         try {
             const res = await fetch(`${API}/api/Ficha`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data: any[] = await res.json();
+            const data: FichaAPI[] = await res.json();
             const seen = new Set<number>();
             setFichas(
                 data
                     .filter(f => { if (seen.has(f.codigo)) return false; seen.add(f.codigo); return true; })
                     .map(mapFicha)
             );
-        } catch (e: any) {
-            setError(e.message ?? "Erro ao carregar fichas");
+        } catch (e) {
+            setError(mensagemDeErro(e, "Erro ao carregar fichas"));
         } finally {
             setLoading(false);
         }

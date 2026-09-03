@@ -12,6 +12,20 @@ export interface FichaAPI {
     codigoTipoOperacao?: number | null;
     codigoPassoAtual?: number | null;
     nomeMotorista?: string | null;
+    noFilial?: string | null;
+    estaFinalizada?: boolean | null;
+}
+
+export interface ItemNotaFiscalAPI {
+    codigoProduto?: string | null;
+    codigoEan?: string | null;
+    quantidade?: number | null;
+    unidadeMedidaComercial?: string | null;
+    unidadeMedida?: string | null;
+    precoUnitario?: number | null;
+    valorTotal?: number | null;
+    valorIpi?: number | null;
+    codigoCfo?: string | null;
 }
 
 export interface Ficha {

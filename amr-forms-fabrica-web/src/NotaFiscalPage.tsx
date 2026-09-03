@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { API, icons, type NotaFiscalAPI } from "./types";
+import { API, icons, type NotaFiscalAPI, type ItemNotaFiscalAPI } from "./types";
 import { Icon, Spinner, ErrorBox } from "./ui";
+import { mensagemDeErro } from "./erros";
 
 const thStyle: React.CSSProperties = {
     padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#6B7280",
@@ -39,7 +40,7 @@ function AmbienteBadge({ ambiente }: { ambiente: string | null }) {
 }
 
 function DetalheNF({ nf, onClose }: { nf: NotaFiscalAPI; onClose: () => void }) {
-    const [itens, setItens] = useState<any[]>([]);
+    const [itens, setItens] = useState<ItemNotaFiscalAPI[]>([]);
     const [loadingItens, setLoadingItens] = useState(true);
 
     useEffect(() => {
@@ -49,7 +50,7 @@ function DetalheNF({ nf, onClose }: { nf: NotaFiscalAPI; onClose: () => void }) 
             .then(setItens)
             .catch(() => setItens([]))
             .finally(() => setLoadingItens(false));
-    }, [nf.cdNotaFiscal, nf.cdSerNotaFiscal]);
+    }, [nf.numero, nf.serieNotaFiscal]);
 
     return (
         <div style={{
@@ -187,8 +188,8 @@ export default function NotaFiscalPage() {
             const res = await fetch(`${API}/api/NotaFiscal`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             setNfs(await res.json());
-        } catch (e: any) {
-            setError(e.message ?? "Erro ao carregar notas fiscais");
+        } catch (e) {
+            setError(mensagemDeErro(e, "Erro ao carregar notas fiscais"));
         } finally {
             setLoading(false);
         }

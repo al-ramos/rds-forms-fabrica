@@ -95,7 +95,8 @@ export const KPICard = memo(({ label, value, color = "#10B981" }: {
     }}>
         <div style={{
             position: "absolute", top: 0, left: 0, right: 0, height: 2,
-            background: "linear-gradient(90deg, #E85D04, transparent)"
+            // A prop color era aceita e ignorada — a barra ficava sempre laranja.
+            background: `linear-gradient(90deg, ${color}, transparent)`
         }} />
         <span style={{
             fontSize: 11, fontWeight: 600, letterSpacing: "0.1em",
