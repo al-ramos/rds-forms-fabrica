@@ -37,7 +37,7 @@ describe('VeiculosPage', () => {
   it('exibe spinner enquanto os dados estão carregando', () => {
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
     render(<VeiculosPage />)
-    expect(screen.getByText(/carregando dados/i)).toBeInTheDocument()
+    expect(screen.getByText(/carregando veículos/i)).toBeInTheDocument()
   })
 
   it('renderiza a lista de veículos após carregamento bem-sucedido', async () => {
