@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { erpApi } from "./api/erpApi";
 import type { PedidoVendaERP } from "./api/erpApi";
+import { mensagemDeErro } from "./erros";
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -189,8 +190,8 @@ export default function NovaFicha({ onBack, onSuccess }: NovaFichaProps) {
 
             setSuccess(true);
             setTimeout(() => onSuccess(), 1500);
-        } catch (e: any) {
-            setError(e.message ?? "Erro ao criar ficha");
+        } catch (e) {
+            setError(mensagemDeErro(e, "Erro ao criar ficha"));
         } finally {
             setLoading(false);
         }

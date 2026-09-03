@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { API } from "../types";
+import { mensagemDeErro } from "../erros";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface VeiculoAPI {
@@ -73,8 +74,8 @@ function ModalNovoVeiculo({ filiais, onSalvo, onFechar }: {
         ufVeiculo: uf.trim() || null,
         codigoRntc: rntc.trim() || null,
       });
-    } catch (e: any) {
-      setErro(e.message ?? "Erro ao cadastrar veículo");
+    } catch (e) {
+      setErro(mensagemDeErro(e, "Erro ao cadastrar veículo"));
     } finally {
       setLoading(false);
     }
@@ -201,8 +202,8 @@ export default function VeiculosPage() {
       if (!resF.ok) throw new Error(`Filiais: HTTP ${resF.status}`);
       setVeiculos(await resV.json());
       setFiliais(await resF.json());
-    } catch (e: any) {
-      setError(e.message ?? "Erro ao carregar dados");
+    } catch (e) {
+      setError(mensagemDeErro(e, "Erro ao carregar dados"));
     } finally {
       setLoading(false);
     }

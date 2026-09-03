@@ -2,6 +2,7 @@ import { useState, useMemo, memo, useCallback } from "react";
 import { statusMap, icons, type Ficha } from './types';
 import { passos, tdStyle, thStyle } from "./types";
 import { Icon, StatusBadge, PassoTimeline, Spinner, ErrorBox } from "./ui";
+import { mensagemDeErro } from "./erros";
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -40,8 +41,8 @@ const FichaDetalhe = memo(({ ficha, onClose, onAtualizar }: {
                 noPasso: passos[novoIdx],
                 status: novoStatus,
             });
-        } catch (e: any) {
-            setErro(e.message ?? "Erro ao avançar passo");
+        } catch (e) {
+            setErro(mensagemDeErro(e, "Erro ao avançar passo"));
         } finally {
             setAvancando(false);
         }
@@ -145,9 +146,12 @@ const FichaDetalhe = memo(({ ficha, onClose, onAtualizar }: {
                                         method: "PATCH",
                                         headers: { "Content-Type": "application/json" },
                                     });
+                                    // A resposta era ignorada: um PATCH com falha ainda
+                                    // marcava a ficha como concluida na tela.
+                                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
                                     onAtualizar({ ...ficha, status: "concluida" });
                                 } catch (e) {
-                                    setErro(e.message ?? "Erro ao registrar saída");
+                                    setErro(mensagemDeErro(e, "Erro ao registrar saída"));
                                 } finally {
                                     setAvancando(false);
                                 }
