@@ -1,15 +1,19 @@
 #!/bin/bash
+# Sobe API e frontend localmente. Os caminhos apontavam para
+# /c/GitHub/RDS.Forms.Fabrica, que nao existe desde o rebranding.
+set -e
+RAIZ="$(cd "$(dirname "$0")" && pwd)"
 
 echo "🔨 Building solution..."
-cd /c/GitHub/RDS.Forms.Fabrica
-dotnet build --no-restore 2>&1 | grep -E "error|succeeded|failed"
+cd "$RAIZ"
+dotnet build --no-restore 2>&1 | grep -E "error|succeeded|failed" || true
 
 echo "🚀 Starting API..."
-cd /c/GitHub/RDS.Forms.Fabrica/src/RDS.Forms.Fabrica.API
+cd "$RAIZ/src/AMR.Forms.Fabrica.API"
 dotnet run &
 
-echo "⚛️ Starting Frontend..."
-cd /c/GitHub/RDS.Forms.Fabrica/rds-forms-fabrica-web
+echo "⚛️  Starting Frontend..."
+cd "$RAIZ/amr-forms-fabrica-web"
 npm run dev &
 
 echo "✅ Done! API: http://localhost:5186 | Frontend: http://localhost:5173"

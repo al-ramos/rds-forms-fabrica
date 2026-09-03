@@ -32,6 +32,9 @@ Thumbs.db
 
 appsettings.Development.json
 appsettings.*.json
+# ...menos o de desenvolvimento: nao tem segredo nenhum e e o que faz o
+# `dotnet run` funcionar num clone limpo.
+!appsettings.Development.json
 !appsettings.json
 
 

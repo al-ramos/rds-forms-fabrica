@@ -55,23 +55,33 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReact", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// As origens vem de Cors:AllowedOrigins, aceito como string unica ou array.
+// Nenhuma origem fica fixada no codigo: em producao a origem e injetada por
+// variavel de ambiente (Cors__AllowedOrigins). Sem origem configurada a
+// politica nao libera nenhuma — o fallback antigo WithOrigins("*") era tratado
+// pelo ASP.NET Core como a origem literal "*" e nunca liberou nada de fato.
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? (builder.Configuration["Cors:AllowedOrigins"] is { Length: > 0 } origemUnica
+        ? new[] { origemUnica }
+        : Array.Empty<string>());
+
+builder.Services.AddCors(opts =>
+    opts.AddPolicy("AllowReact", policy =>
+    {
+        if (corsOrigins.Length > 0)
+            policy.WithOrigins(corsOrigins).AllowAnyMethod().AllowAnyHeader();
+    }));
 
 builder.Services.AddHttpClient<IErpHttpClient, ErpHttpClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ErpCore:BaseUrl"] ?? "http://localhost:5000");
+    client.BaseAddress = UrlDoServico(builder.Configuration, builder.Environment, "ErpCore:BaseUrl", "http://localhost:5000");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 builder.Services.AddHttpClient<IFinanceiroHttpClient, FinanceiroHttpClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Financeiro:BaseUrl"] ?? "http://localhost:5015");
+    client.BaseAddress = UrlDoServico(builder.Configuration, builder.Environment, "Financeiro:BaseUrl", "http://localhost:5015");
     client.Timeout = TimeSpan.FromSeconds(15);
 });
 
@@ -133,6 +143,44 @@ app.Use(async (ctx, next) =>
 app.UseCors("AllowReact");
 app.UseRateLimiter();
 app.UseAuthorization();
+// Health checks — o target group do ALB precisa de um caminho que responda sem
+// depender de nada. /health e liveness pura (o processo subiu); /health/ready
+// verifica o banco, que e a unica dependencia externa da API hoje.
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
+   .ExcludeFromDescription();
+
+app.MapGet("/health/ready", async (IServiceProvider sp, CancellationToken ct) =>
+{
+    try
+    {
+        using var scope = sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<RdsDbContext>();
+        await db.Database.CanConnectAsync(ct);
+        return Results.Ok(new { status = "ready" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "degraded", detail = ex.Message }, statusCode: 503);
+    }
+}).ExcludeFromDescription();
+
 app.MapControllers();
 
 app.Run();
+
+// Resolve a URL de um servico integrado. Fora de Development a URL tem de vir da
+// configuracao: um default de localhost em container significa integracao que
+// falha silenciosamente em runtime, e nao no boot, onde da para ver.
+static Uri UrlDoServico(IConfiguration cfg, IHostEnvironment env, string chave, string urlDeDesenvolvimento)
+{
+    var valor = cfg[chave];
+    if (!string.IsNullOrWhiteSpace(valor))
+        return new Uri(valor);
+
+    if (env.IsDevelopment())
+        return new Uri(urlDeDesenvolvimento);
+
+    throw new InvalidOperationException(
+        $"Configuracao obrigatoria ausente: '{chave}'. " +
+        $"Defina a variavel de ambiente '{chave.Replace(":", "__")}' com a URL do servico.");
+}
