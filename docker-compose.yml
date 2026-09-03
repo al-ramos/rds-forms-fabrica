@@ -3,22 +3,32 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: rds_api
+    container_name: amr_fabrica_api
     ports:
       - "5186:8080"
+    volumes:
+      - fabrica_data:/app/data
     environment:
-      ConnectionStrings__AmrFormasFabrica: "Server=host.docker.internal,1433;Database=AMR_Forms_Fabrica;User Id=rds_app;Password=844932;TrustServerCertificate=True;MultipleActiveResultSets=true"
       ASPNETCORE_ENVIRONMENT: "Development"
+      # SQLite, que e o provider que o codigo usa. A string anterior apontava
+      # para um SQL Server em host.docker.internal e trazia a senha em texto
+      # plano dentro do repositorio.
+      ConnectionStrings__AmrFormasFabrica: "Data Source=/app/data/amr_fabrica.db"
+      Cors__AllowedOrigins: "http://localhost:3000"
+      Financeiro__BaseUrl: "http://host.docker.internal:5015"
+      ErpCore__BaseUrl: "http://host.docker.internal:5000"
     restart: unless-stopped
+
   web:
     build:
-      context: ./rds-forms-fabrica-web
+      context: ./amr-forms-fabrica-web
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: "http://localhost:5186"
-    container_name: rds_web
+    container_name: amr_fabrica_web
     ports:
       - "3000:80"
     depends_on:
       - api
     restart: unless-stopped
+
+volumes:
+  fabrica_data:

@@ -15,7 +15,7 @@ public static class InfrastructureServiceRegistration
     {
         services.AddDbContext<RdsDbContext>(options =>
             options.UseSqlite(
-                configuration.GetConnectionString("AmrFormasFabrica") ?? "Data Source=rds_fabrica.db"
+                configuration.GetConnectionString("AmrFormasFabrica") ?? "Data Source=amr_fabrica.db"
             )
         );
 
