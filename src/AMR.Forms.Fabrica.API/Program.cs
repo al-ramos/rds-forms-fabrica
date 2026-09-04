@@ -114,7 +114,11 @@ using (var scope = app.Services.CreateScope())
 // ── Pipeline ──────────────────────────────────────────────────────────────────
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+// Swagger fica em Development e, fora dele, so quando Swagger:Habilitado for ligado
+// deliberadamente. O gate anterior era `IsDevelopment() || IsProduction()`, ou seja,
+// sempre. Como este modulo ainda nao tem autenticacao (AUTH-01), isso publicava um
+// navegador completo da API, com execucao, para quem alcancasse o ALB. Ver EXP-01.
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Habilitado"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
