@@ -15,13 +15,17 @@ RUN dotnet publish src/AMR.Forms.Fabrica.API/AMR.Forms.Fabrica.API.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
-
 COPY --from=build /app/publish .
-COPY src/AMR.Forms.Fabrica.API/rds_fabrica.db .
-COPY seed.sql .
 
-RUN sqlite3 rds_fabrica.db < seed.sql
+# A imagem nao carrega mais banco nenhum. Antes ela copiava um rds_fabrica.db
+# versionado e rodava seed.sql por cima, assando veiculos, produtos, fichas e
+# notas fiscais ficticios dentro da imagem de producao (SEED-01). O arquivo
+# tambem deixou de existir no repositorio, o que quebrava este build.
+#
+# O banco agora nasce vazio no volume e a propria API aplica as migrations no
+# boot. seed.sql continua no repositorio como conveniencia de desenvolvimento,
+# para ser aplicado a mao quando se quiser uma base povoada.
+RUN mkdir -p /app/data
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

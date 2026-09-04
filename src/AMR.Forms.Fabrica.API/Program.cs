@@ -95,7 +95,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RdsDbContext>();
     db.Database.Migrate();
 
-    // Seed de filiais padrão se a tabela estiver vazia
+    // Filiais padrao. Isto e bootstrap, nao demonstracao: tudo no modulo e por
+    // filial, e sem ao menos uma o sistema nao opera. Sao rotulos genericos, nao
+    // descrevem nenhuma empresa — por isso continuam entrando em todo ambiente.
+    // O que era demonstracao aqui estava no Dockerfile, assado na imagem. Ver SEED-01.
     if (!db.Filiais.Any())
     {
         db.Filiais.AddRange(
