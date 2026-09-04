@@ -1,5 +1,13 @@
 -- ============================================================
--- SEED - RDS Forms Fábrica (SQLite)
+-- SEED de DESENVOLVIMENTO — AMR Forms Fábrica (SQLite)
+--
+-- Dados fictícios: veículos, produtos, fichas e notas fiscais.
+-- NÃO é aplicado pela imagem de produção. Até 03/09/2026 o Dockerfile
+-- rodava este arquivo no build, assando dados de demonstração dentro da
+-- imagem — ver SEED-01.
+--
+-- Para popular uma base local:
+--   sqlite3 amr_fabrica.db < seed.sql
 -- ============================================================
 
 INSERT OR IGNORE INTO VEICULO (CD_PLACA_VEICULO, CD_FILIAL, CD_UF_VEICULO, CD_RNTC_VEICULO)
